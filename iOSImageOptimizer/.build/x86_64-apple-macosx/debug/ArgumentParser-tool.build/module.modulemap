@@ -1,0 +1,4 @@
+module ArgumentParser {
+    header "/Users/sahilsatralkar/Documents/GitHub/iOSImageOptimizer/iOSImageOptimizer/.build/x86_64-apple-macosx/debug/ArgumentParser-tool.build/ArgumentParser-Swift.h"
+    requires objc
+}
