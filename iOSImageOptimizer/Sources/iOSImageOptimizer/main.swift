@@ -3,7 +3,6 @@ import Foundation
 import Files
 import Rainbow
 
-@main
 struct IOSImageOptimizer: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "ios-image-optimizer",
@@ -32,3 +31,5 @@ struct IOSImageOptimizer: ParsableCommand {
         }
     }
 }
+
+IOSImageOptimizer.main()

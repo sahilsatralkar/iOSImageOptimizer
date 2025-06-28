@@ -29,6 +29,7 @@ struct AnalysisReport {
             print("\n🗑️  " + "Unused Images:".bold.red)
             for image in unusedImages.prefix(10) {
                 print("  ❌ \(image.name) (\(formatBytes(image.size)))")
+                print("     Path: \(image.path)")
             }
             if unusedImages.count > 10 {
                 print("  ... and \(unusedImages.count - 10) more")
@@ -47,13 +48,6 @@ struct AnalysisReport {
             }
         }
         
-        print("\n✨ " + "Recommendations:".bold.green)
-        if wastedSize > 0 {
-            print("  → Run 'ios-image-optimizer clean' to remove unused images")
-            print("  → Run 'ios-image-optimizer optimize' to resize oversized images")
-        } else {
-            print("  → Your project is well optimized! 🎉")
-        }
     }
     
     func exportJSON() throws {

@@ -47,7 +47,7 @@ class ImageScanner {
             let asset = ImageAsset(
                 name: file.nameExcludingExtension,
                 path: file.path,
-                size: Int64(file.size ?? 0),
+                size: getFileSize(file),
                 type: imageType,
                 scale: extractScale(from: file.name)
             )
@@ -82,7 +82,7 @@ class ImageScanner {
                         let asset = ImageAsset(
                             name: assetName,
                             path: file.path,
-                            size: Int64(file.size ?? 0),
+                            size: getFileSize(file),
                             type: .assetCatalog(scale: "\(scale)x"),
                             scale: scale
                         )
@@ -95,8 +95,8 @@ class ImageScanner {
         return images
     }
     
-    private func imageType(for extension: String) -> ImageAsset.ImageType? {
-        switch extension.lowercased() {
+    private func imageType(for fileExtension: String) -> ImageAsset.ImageType? {
+        switch fileExtension.lowercased() {
         case "png": return .png
         case "jpg", "jpeg": return .jpeg
         case "pdf": return .pdf
@@ -109,5 +109,14 @@ class ImageScanner {
         if filename.contains("@3x") { return 3 }
         if filename.contains("@2x") { return 2 }
         return 1
+    }
+    
+    private func getFileSize(_ file: File) -> Int64 {
+        do {
+            let attributes = try FileManager.default.attributesOfItem(atPath: file.path)
+            return attributes[.size] as? Int64 ?? 0
+        } catch {
+            return 0
+        }
     }
 }
