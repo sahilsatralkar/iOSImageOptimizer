@@ -1,4 +1,5 @@
 import Foundation
+import Files
 import Rainbow
 
 struct AnalysisReport {
@@ -212,15 +213,13 @@ class ProjectAnalyzer {
         
         if verbose { print("Found \(allImages.count) images") }
         
-        // Step 2: Find used images
+        // Step 2: Find used images (includes pattern-based detection)
         if verbose { print("Detecting image usage...") }
         let detector = UsageDetector(projectPath: projectPath, verbose: verbose)
         let usedImageNames = try detector.findUsedImageNames()
         
-        // Step 3: Identify unused images
-        let unusedImages = allImages.filter { image in
-            !usedImageNames.contains(image.name)
-        }
+        // Step 3: Identify unused images with enhanced cross-referencing
+        let unusedImages = try identifyUnusedImagesWithCrossValidation(allImages: allImages, usedImageNames: usedImageNames)
         
         // Step 4: Apple compliance validation
         if verbose { print("Running Apple compliance validation...") }
@@ -247,5 +246,127 @@ class ProjectAnalyzer {
         let formatter = ByteCountFormatter()
         formatter.countStyle = .file
         return formatter.string(fromByteCount: bytes)
+    }
+    
+    // MARK: - Enhanced Cross-Validation Logic
+    
+    private func identifyUnusedImagesWithCrossValidation(allImages: [ImageAsset], usedImageNames: Set<String>) throws -> [ImageAsset] {
+        var unusedImages: [ImageAsset] = []
+        
+        // Build comprehensive name variants for each image
+        for image in allImages {
+            // Skip test reference images, watchOS complications, and system-managed assets
+            if isTestReferenceImage(image) || isWatchOSComplication(image) || isSystemManagedAsset(image) {
+                if verbose {
+                    let type = isTestReferenceImage(image) ? "test" : 
+                              isWatchOSComplication(image) ? "watchOS" : "system"
+                    print("Skipping special image: \(image.name) (\(type))")
+                }
+                continue
+            }
+            
+            let imageNameVariants = generateImageNameVariants(for: image)
+            
+            // Check if ANY variant is referenced in the code
+            let isUsed = imageNameVariants.contains { variant in
+                usedImageNames.contains(variant)
+            }
+            
+            if !isUsed {
+                // Double-check with file system validation
+                if !isReferencedInProjectFiles(imageName: image.name) {
+                    unusedImages.append(image)
+                }
+            }
+        }
+        
+        return unusedImages
+    }
+    
+    private func generateImageNameVariants(for image: ImageAsset) -> Set<String> {
+        var variants = Set<String>()
+        
+        // Add the base name
+        variants.insert(image.name)
+        
+        // Add name without extension
+        if let nameWithoutExt = image.name.components(separatedBy: ".").first, nameWithoutExt != image.name {
+            variants.insert(nameWithoutExt)
+        }
+        
+        // Add scale variants (@2x, @3x patterns)
+        let baseName = image.name.replacingOccurrences(of: "@2x", with: "").replacingOccurrences(of: "@3x", with: "")
+        variants.insert(baseName)
+        variants.insert("\(baseName)@2x")
+        variants.insert("\(baseName)@3x")
+        
+        // Add filename variants from asset catalog structure
+        if case .assetCatalog = image.type {
+            let pathComponents = image.path.components(separatedBy: "/")
+            if let imagesetFolder = pathComponents.first(where: { $0.hasSuffix(".imageset") }) {
+                let assetFolderName = imagesetFolder.replacingOccurrences(of: ".imageset", with: "")
+                variants.insert(assetFolderName)
+            }
+        }
+        
+        // Add common iOS naming patterns
+        variants.insert(image.name.lowercased())
+        variants.insert(image.name.uppercased())
+        
+        return variants
+    }
+    
+    private func isReferencedInProjectFiles(imageName: String) -> Bool {
+        // Additional safety check - look for the image name as a plain string anywhere in project files
+        do {
+            let folder = try Folder(path: projectPath)
+            for file in folder.files.recursive {
+                if let ext = file.extension,
+                   ["swift", "m", "mm", "h", "storyboard", "xib", "plist", "strings"].contains(ext) {
+                    let content = try file.readAsString()
+                    if content.contains(imageName) {
+                        return true
+                    }
+                }
+            }
+        } catch {
+            // If there's an error reading files, err on the side of caution
+            return true
+        }
+        
+        return false
+    }
+    
+    private func isTestReferenceImage(_ image: ImageAsset) -> Bool {
+        let path = image.path.lowercased()
+        let name = image.name.lowercased()
+        
+        return path.contains("referenceimages") ||
+               path.contains("tests/") ||
+               path.contains("test/") ||
+               name.contains("test") ||
+               name.contains("snapshot") ||
+               path.contains("snapshot")
+    }
+    
+    private func isWatchOSComplication(_ image: ImageAsset) -> Bool {
+        let path = image.path.lowercased()
+        
+        return path.contains("watch extension") ||
+               path.contains("watchkit") ||
+               path.contains("complication") ||
+               path.contains(".watchapp/") ||
+               path.contains("watch app")
+    }
+    
+    private func isSystemManagedAsset(_ image: ImageAsset) -> Bool {
+        let path = image.path.lowercased()
+        
+        return path.contains("appicon.solidimagestack") ||      // visionOS app icons
+               path.contains("appicon.appiconset") ||           // iOS app icons
+               path.contains("launchimage.launchimage") ||      // Launch images
+               path.contains(".solidimagestacklayer") ||        // visionOS icon layers
+               path.contains("assets.car") ||                   // Compiled assets
+               (path.contains("appicon") && path.contains(".imageset")) // App icon variants
     }
 }

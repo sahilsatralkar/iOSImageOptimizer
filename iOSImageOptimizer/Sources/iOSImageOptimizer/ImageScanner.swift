@@ -34,8 +34,8 @@ class ImageScanner {
         // Scan for standalone images
         images.append(contentsOf: try scanStandaloneImages(in: folder))
         
-        // Scan asset catalogs
-        images.append(contentsOf: try scanAssetCatalogs(in: folder))
+        // Scan asset catalogs with proper name handling
+        images.append(contentsOf: try scanAssetCatalogsEnhanced(in: folder))
         
         return images
     }
@@ -203,5 +203,48 @@ class ImageScanner {
         }
         
         return nil
+    }
+    
+    // MARK: - Enhanced Asset Catalog Scanning
+    
+    private func scanAssetCatalogsEnhanced(in folder: Folder) throws -> [ImageAsset] {
+        var images: [ImageAsset] = []
+        
+        for subfolder in folder.subfolders.recursive {
+            if subfolder.name.hasSuffix(".xcassets") {
+                let projectParser = ProjectParser(projectPath: projectPath)
+                let assetInfos = try projectParser.parseAssetCatalogs()
+                
+                for assetInfo in assetInfos {
+                    for variant in assetInfo.variants {
+                        let variantPath = "\(assetInfo.path)/\(variant.filename)"
+                        if let file = try? File(path: variantPath) {
+                            let imageType = imageType(for: (variantPath as NSString).pathExtension) ?? .png
+                            let metadata = getImageMetadata(at: variantPath, type: imageType)
+                            
+                            let asset = ImageAsset(
+                                name: assetInfo.name, // Use the actual asset name from Contents.json
+                                path: variantPath,
+                                size: getFileSize(file),
+                                type: .assetCatalog(scale: variant.scale),
+                                scale: extractScaleFromVariant(variant.scale),
+                                dimensions: metadata.dimensions,
+                                isInterlaced: metadata.isInterlaced,
+                                colorProfile: metadata.colorProfile
+                            )
+                            images.append(asset)
+                        }
+                    }
+                }
+            }
+        }
+        
+        return images
+    }
+    
+    private func extractScaleFromVariant(_ scaleString: String) -> Int {
+        if scaleString.contains("3x") { return 3 }
+        if scaleString.contains("2x") { return 2 }
+        return 1
     }
 }
