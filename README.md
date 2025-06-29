@@ -80,10 +80,10 @@ xcode-select --install
 cd ~/Documents
 
 # Download the tool
-git clone https://github.com/sahilsatralkar/iOSImageOptimizer.git
+git clone https://github.com/sahilsatralkar/iOSImageOptimizerTool.git
 
 # Go into the tool directory
-cd iOSImageOptimizer/iOSImageOptimizer
+cd iOSImageOptimizerTool/iOSImageOptimizer
 
 # Build the tool (takes 2-5 minutes first time)
 swift build
