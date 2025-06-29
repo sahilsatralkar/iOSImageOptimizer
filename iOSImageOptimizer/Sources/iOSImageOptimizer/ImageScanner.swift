@@ -1,14 +1,19 @@
 import Foundation
 import Files
+import CoreGraphics
+import ImageIO
 
-struct ImageAsset {
+struct ImageAsset: Encodable {
     let name: String
     let path: String
     let size: Int64
     let type: ImageType
     let scale: Int?
+    let dimensions: CGSize?
+    let isInterlaced: Bool?
+    let colorProfile: String?
     
-    enum ImageType {
+    enum ImageType: Equatable, Encodable {
         case png, jpeg, pdf, svg
         case assetCatalog(scale: String)
     }
@@ -44,12 +49,16 @@ class ImageScanner {
             // Skip images in .xcassets
             if file.path.contains(".xcassets") { continue }
             
+            let metadata = getImageMetadata(at: file.path, type: imageType)
             let asset = ImageAsset(
                 name: file.nameExcludingExtension,
                 path: file.path,
                 size: getFileSize(file),
                 type: imageType,
-                scale: extractScale(from: file.name)
+                scale: extractScale(from: file.name),
+                dimensions: metadata.dimensions,
+                isInterlaced: metadata.isInterlaced,
+                colorProfile: metadata.colorProfile
             )
             images.append(asset)
         }
@@ -79,12 +88,16 @@ class ImageScanner {
                 for file in imageSet.files {
                     if let imageType = imageType(for: file.extension ?? "") {
                         let scale = extractScale(from: file.name) ?? 1
+                        let metadata = getImageMetadata(at: file.path, type: imageType)
                         let asset = ImageAsset(
                             name: assetName,
                             path: file.path,
                             size: getFileSize(file),
                             type: .assetCatalog(scale: "\(scale)x"),
-                            scale: scale
+                            scale: scale,
+                            dimensions: metadata.dimensions,
+                            isInterlaced: metadata.isInterlaced,
+                            colorProfile: metadata.colorProfile
                         )
                         images.append(asset)
                     }
@@ -118,5 +131,77 @@ class ImageScanner {
         } catch {
             return 0
         }
+    }
+    
+    // MARK: - Image Metadata Reading
+    
+    private struct ImageMetadata {
+        let dimensions: CGSize?
+        let isInterlaced: Bool?
+        let colorProfile: String?
+    }
+    
+    private func getImageMetadata(at path: String, type: ImageAsset.ImageType) -> ImageMetadata {
+        let dimensions = getImageDimensions(at: path)
+        let isInterlaced = type == .png ? checkPNGInterlacing(at: path) : nil
+        let colorProfile = readColorProfile(at: path)
+        
+        return ImageMetadata(
+            dimensions: dimensions,
+            isInterlaced: isInterlaced,
+            colorProfile: colorProfile
+        )
+    }
+    
+    private func getImageDimensions(at path: String) -> CGSize? {
+        guard let imageSource = CGImageSourceCreateWithURL(URL(fileURLWithPath: path) as CFURL, nil),
+              let imageProperties = CGImageSourceCopyPropertiesAtIndex(imageSource, 0, nil) as? [CFString: Any] else {
+            return nil
+        }
+        
+        guard let width = imageProperties[kCGImagePropertyPixelWidth] as? NSNumber,
+              let height = imageProperties[kCGImagePropertyPixelHeight] as? NSNumber else {
+            return nil
+        }
+        
+        return CGSize(width: width.doubleValue, height: height.doubleValue)
+    }
+    
+    private func checkPNGInterlacing(at path: String) -> Bool? {
+        guard let data = NSData(contentsOfFile: path),
+              data.length >= 33 else {
+            return nil
+        }
+        
+        // PNG interlace method is at byte 28 in the IHDR chunk
+        // PNG signature (8 bytes) + IHDR length (4) + "IHDR" (4) + width (4) + height (4) + bit depth (1) + color type (1) + compression (1) + filter (1) + interlace (1)
+        var interlaceMethod: UInt8 = 0
+        data.getBytes(&interlaceMethod, range: NSRange(location: 28, length: 1))
+        
+        return interlaceMethod == 1 // 1 = interlaced, 0 = non-interlaced
+    }
+    
+    private func readColorProfile(at path: String) -> String? {
+        guard let imageSource = CGImageSourceCreateWithURL(URL(fileURLWithPath: path) as CFURL, nil),
+              let imageProperties = CGImageSourceCopyPropertiesAtIndex(imageSource, 0, nil) as? [CFString: Any] else {
+            return nil
+        }
+        
+        // Check for color profile information
+        if let colorModel = imageProperties[kCGImagePropertyColorModel] as? String {
+            return colorModel
+        }
+        
+        // Check for ICC profile (use a string key since the constant might not be available)
+        if let profileDescription = imageProperties["ProfileDescription" as CFString] as? String {
+            return profileDescription
+        }
+        
+        // Check for embedded color space
+        if imageProperties[kCGImagePropertyHasAlpha] != nil {
+            return "RGB" // Basic fallback
+        }
+        
+        return nil
     }
 }

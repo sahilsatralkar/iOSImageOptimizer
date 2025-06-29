@@ -4,54 +4,36 @@ import Rainbow
 struct AnalysisReport {
     let totalImages: Int
     let unusedImages: [ImageAsset]
-    let oversizedImages: [OversizedImage]
     let totalSize: Int64
     let unusedImageSize: Int64
-    let oversizedImageSavings: Int64
     let totalPotentialSavings: Int64
     
-    struct OversizedImage {
-        let asset: ImageAsset
-        let reason: String
-        let potentialSaving: Int64
-    }
+    // Apple compliance results
+    let appleComplianceResults: AppleComplianceResults
     
     func printToConsole() {
         print("\n📊 " + "Analysis Complete".bold)
         print("=" * 50)
         
+        // Apple compliance score
+        let scoreColor = getScoreColor(appleComplianceResults.complianceScore)
+        print("\n🎯 " + "Apple Compliance Score: \(appleComplianceResults.complianceScore)/100".applyingColor(scoreColor).bold)
+        
         print("\n📈 " + "Summary:".bold)
         print("  Total images: \(totalImages)")
-        print("  Unused images: \(unusedImages.count)".red)
-        print("  Oversized images: \(oversizedImages.count)".yellow)
         print("  Total image size: \(formatBytes(totalSize))")
-        print("\n💾 " + "Potential Savings Breakdown:".bold)
-        print("  From unused images: \(formatBytes(unusedImageSize))".red)
-        print("  From oversized images: \(formatBytes(oversizedImageSavings))".yellow)
-        print("  Total potential savings: \(formatBytes(totalPotentialSavings))".green)
+        print("  Unused images: \(unusedImages.count)".red)
+        print("  Potential savings: \(formatBytes(totalPotentialSavings))".green)
         
-        if !unusedImages.isEmpty {
-            print("\n🗑️  " + "Unused Images:".bold.red)
-            for image in unusedImages.prefix(10) {
-                print("  ❌ \(image.name) (\(formatBytes(image.size)))")
-                print("     Path: \(image.path)")
-            }
-            if unusedImages.count > 10 {
-                print("  ... and \(unusedImages.count - 10) more")
-            }
-        }
+        print("\n🍎 " + "Apple Guidelines Compliance:".bold)
+        print("  PNG interlacing issues: \(appleComplianceResults.pngInterlacingIssues.count)".colorForIssueCount(appleComplianceResults.pngInterlacingIssues.count))
+        print("  Color profile issues: \(appleComplianceResults.colorProfileIssues.count)".colorForIssueCount(appleComplianceResults.colorProfileIssues.count))
+        print("  Asset catalog issues: \(appleComplianceResults.assetCatalogIssues.count)".colorForIssueCount(appleComplianceResults.assetCatalogIssues.count))
+        print("  Design quality issues: \(appleComplianceResults.designQualityIssues.count)".colorForIssueCount(appleComplianceResults.designQualityIssues.count))
         
-        if !oversizedImages.isEmpty {
-            print("\n⚠️  " + "Oversized Images:".bold.yellow)
-            for oversized in oversizedImages.prefix(10) {
-                print("  ⚡ \(oversized.asset.name)")
-                print("     \(oversized.reason)")
-                print("     Potential saving: \(formatBytes(oversized.potentialSaving))".dim)
-            }
-            if oversizedImages.count > 10 {
-                print("  ... and \(oversizedImages.count - 10) more")
-            }
-        }
+        printDetailedIssues()
+        printActionableRecommendations()
+        
         
     }
     
@@ -65,20 +47,157 @@ struct AnalysisReport {
         formatter.countStyle = .file
         return formatter.string(fromByteCount: bytes)
     }
+    
+    private func getScoreColor(_ score: Int) -> ColorType {
+        if score >= 80 { return .named(.green) }
+        if score >= 60 { return .named(.yellow) }
+        return .named(.red)
+    }
+    
+    private func printDetailedIssues() {
+        if !unusedImages.isEmpty {
+            print("\n🗑️  " + "Unused Images:".bold.red)
+            for image in unusedImages.prefix(10) {
+                print("  ❌ \(image.name) (\(formatBytes(image.size)))")
+                print("     Path: \(image.path)")
+            }
+            if unusedImages.count > 10 {
+                print("  ... and \(unusedImages.count - 10) more")
+            }
+        }
+        
+        if !appleComplianceResults.pngInterlacingIssues.isEmpty {
+            print("\n🖼️  " + "PNG Interlacing Issues:".bold.yellow)
+            for issue in appleComplianceResults.pngInterlacingIssues.prefix(5) {
+                print("  ⚠️ \(issue.image.name) - \(issue.performanceImpact) impact")
+                print("     \(issue.recommendation)".dim)
+            }
+            if appleComplianceResults.pngInterlacingIssues.count > 5 {
+                print("  ... and \(appleComplianceResults.pngInterlacingIssues.count - 5) more")
+            }
+        }
+        
+        if !appleComplianceResults.colorProfileIssues.isEmpty {
+            print("\n🎨  " + "Color Profile Issues:".bold.yellow)
+            for issue in appleComplianceResults.colorProfileIssues.prefix(5) {
+                print("  🟡 \(issue.image.name) - \(getIssueTypeDescription(issue.issueType))")
+                print("     \(issue.recommendation)".dim)
+            }
+            if appleComplianceResults.colorProfileIssues.count > 5 {
+                print("  ... and \(appleComplianceResults.colorProfileIssues.count - 5) more")
+            }
+        }
+        
+        if !appleComplianceResults.assetCatalogIssues.isEmpty {
+            print("\n📁  " + "Asset Catalog Issues:".bold.yellow)
+            for issue in appleComplianceResults.assetCatalogIssues.prefix(5) {
+                print("  📦 \(issue.image.name) - \(getAssetIssueDescription(issue.issueType))")
+                print("     \(issue.recommendation)".dim)
+            }
+            if appleComplianceResults.assetCatalogIssues.count > 5 {
+                print("  ... and \(appleComplianceResults.assetCatalogIssues.count - 5) more")
+            }
+        }
+        
+        if !appleComplianceResults.designQualityIssues.isEmpty {
+            print("\n🎨  " + "Design Quality Issues:".bold.yellow)
+            for issue in appleComplianceResults.designQualityIssues.prefix(5) {
+                print("  🔍 \(issue.image.name) - \(issue.impact)")
+                print("     \(issue.recommendation)".dim)
+            }
+            if appleComplianceResults.designQualityIssues.count > 5 {
+                print("  ... and \(appleComplianceResults.designQualityIssues.count - 5) more")
+            }
+        }
+    }
+    
+    private func printActionableRecommendations() {
+        print("\n💡 " + "Prioritized Action Items:".bold)
+        
+        var recommendations: [(priority: Int, action: String)] = []
+        
+        if !unusedImages.isEmpty {
+            recommendations.append((1, "Remove \(unusedImages.count) unused images to save \(formatBytes(unusedImageSize))"))
+        }
+        
+        let criticalPNG = appleComplianceResults.pngInterlacingIssues.filter { $0.performanceImpact == "Critical" }
+        if !criticalPNG.isEmpty {
+            recommendations.append((2, "Fix \(criticalPNG.count) critical PNG interlacing issues"))
+        }
+        
+        let missingProfiles = appleComplianceResults.colorProfileIssues.filter { 
+            if case .missing = $0.issueType { return true }
+            return false
+        }
+        if !missingProfiles.isEmpty {
+            recommendations.append((3, "Add color profiles to \(missingProfiles.count) images"))
+        }
+        
+        let criticalAssetIssues = appleComplianceResults.assetCatalogIssues.filter { 
+            if case .missingScaleVariant = $0.issueType { return true }
+            return false
+        }
+        if !criticalAssetIssues.isEmpty {
+            recommendations.append((4, "Add missing scale variants for \(criticalAssetIssues.count) images"))
+        }
+        
+        let designIssues = appleComplianceResults.designQualityIssues.filter {
+            $0.issueType == .tooSmallForHighRes || $0.issueType == .inefficientDimensions
+        }
+        if !designIssues.isEmpty {
+            recommendations.append((5, "Address \(designIssues.count) design quality issues"))
+        }
+        
+        for (index, recommendation) in recommendations.enumerated() {
+            print("  \(index + 1). \(recommendation.action)")
+        }
+        
+        if recommendations.isEmpty {
+            print("  ✅ No critical issues found! Your images follow Apple guidelines well.")
+        }
+    }
+    
+    private func getIssueTypeDescription(_ issueType: ColorProfileIssue.ColorProfileIssueType) -> String {
+        switch issueType {
+        case .missing:
+            return "Missing color profile"
+        case .incompatible(let current, let recommended):
+            return "Incompatible profile (\(current) → \(recommended))"
+        case .outdated(let current):
+            return "Outdated profile (\(current))"
+        }
+    }
+    
+    private func getAssetIssueDescription(_ issueType: AssetCatalogIssue.AssetCatalogIssueType) -> String {
+        switch issueType {
+        case .shouldBeInCatalog:
+            return "Should be in Asset Catalog"
+        case .missingScaleVariant(let missing):
+            return "Missing scale variants: \(missing.joined(separator: ", "))"
+        case .orphanedScale(let scale):
+            return "Orphaned scale variant: \(scale)"
+        case .incorrectNaming:
+            return "Incorrect naming convention"
+        }
+    }
 }
 
 extension AnalysisReport: Encodable {}
-extension AnalysisReport.OversizedImage: Encodable {}
+
+// MARK: - String Extensions for Colors
+
+extension String {
+    func colorForIssueCount(_ count: Int) -> String {
+        if count == 0 { return self.green }
+        if count <= 3 { return self.yellow }
+        return self.red
+    }
+}
 
 class ProjectAnalyzer {
     private let projectPath: String
     private let verbose: Bool
     
-    // Size thresholds
-    private let maxImageSize: Int64 = 500 * 1024  // 500KB
-    private let max1xSize: Int64 = 100 * 1024     // 100KB for 1x
-    private let max2xSize: Int64 = 200 * 1024     // 200KB for 2x
-    private let max3xSize: Int64 = 400 * 1024     // 400KB for 3x
     
     init(projectPath: String, verbose: Bool = false) {
         self.projectPath = projectPath
@@ -103,59 +222,26 @@ class ProjectAnalyzer {
             !usedImageNames.contains(image.name)
         }
         
-        // Step 4: Identify oversized images (exclude unused ones to avoid double counting)
-        let usedImages = allImages.filter { image in
-            usedImageNames.contains(image.name)
-        }
-        let oversizedImages = findOversizedImages(in: usedImages)
+        // Step 4: Apple compliance validation
+        if verbose { print("Running Apple compliance validation...") }
+        let validator = AppleComplianceValidator()
+        let appleComplianceResults = validator.validateImages(allImages)
         
-        // Step 5: Calculate metrics with 100% accuracy
+        // Step 5: Calculate metrics (only unused images provide savings)
         let totalSize = allImages.reduce(0) { $0 + $1.size }
         let unusedImageSize = unusedImages.reduce(0) { $0 + $1.size }
-        let oversizedImageSavings = oversizedImages.reduce(0) { $0 + $1.potentialSaving }
-        let totalPotentialSavings = unusedImageSize + oversizedImageSavings
+        let totalPotentialSavings = unusedImageSize
         
         return AnalysisReport(
             totalImages: allImages.count,
             unusedImages: unusedImages,
-            oversizedImages: oversizedImages,
             totalSize: totalSize,
             unusedImageSize: unusedImageSize,
-            oversizedImageSavings: oversizedImageSavings,
-            totalPotentialSavings: totalPotentialSavings
+            totalPotentialSavings: totalPotentialSavings,
+            appleComplianceResults: appleComplianceResults
         )
     }
     
-    private func findOversizedImages(in images: [ImageAsset]) -> [AnalysisReport.OversizedImage] {
-        var oversized: [AnalysisReport.OversizedImage] = []
-        
-        for image in images {
-            // Check against scale-specific thresholds
-            let threshold: Int64
-            let scale = image.scale ?? 1
-            
-            switch scale {
-            case 1: threshold = max1xSize
-            case 2: threshold = max2xSize
-            case 3: threshold = max3xSize
-            default: threshold = maxImageSize
-            }
-            
-            if image.size > threshold {
-                // Calculate realistic potential saving (conservative estimate)
-                let potentialSaving = min(image.size - threshold, image.size / 2)
-                let reason = "Image exceeds \(scale)x size limit (\(formatBytes(image.size)) > \(formatBytes(threshold)))"
-                
-                oversized.append(AnalysisReport.OversizedImage(
-                    asset: image,
-                    reason: reason,
-                    potentialSaving: potentialSaving
-                ))
-            }
-        }
-        
-        return oversized
-    }
     
     private func formatBytes(_ bytes: Int64) -> String {
         let formatter = ByteCountFormatter()
