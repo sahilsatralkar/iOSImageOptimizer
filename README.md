@@ -7,7 +7,7 @@ A comprehensive command-line tool that analyzes your iOS projects for image opti
 This tool provides **comprehensive image analysis** for iOS projects:
 
 ### ✅ Core Features
-- **Unused Image Detection** - Find images that exist but are never referenced in code
+- **Unused Image Detection** - Find images that exist but are never referenced in code, including dynamic loading and compile-time pattern recognition
 - **Apple Compliance Validation** - Validate images against Apple's official guidelines
 - **PNG Interlacing Analysis** - Detect performance-impacting interlaced PNGs
 - **Color Profile Validation** - Ensure consistent colors across devices
@@ -138,7 +138,7 @@ swift run iOSImageOptimizer /Users/yourname/Documents/MyiOSApp
 - **Action**: Resize touch targets to 44×44pt minimum, optimize large images
 
 #### **Unused Images**
-- **What**: Images present in project but never referenced in code
+- **What**: Images present in project but never referenced in code (detects static references, dynamic loading patterns, and string interpolation)
 - **Why**: Reduces app bundle size and improves download/install times
 - **Action**: Review and remove confirmed unused images
 
@@ -148,7 +148,8 @@ swift run iOSImageOptimizer /Users/yourname/Documents/MyiOSApp
 ```bash
 # Before deleting, verify the image is truly unused
 grep -r "image_name" /path/to/your/project
-# If no results, safe to delete
+# The tool already checks for dynamic patterns like Image("Icons/\(variable)")
+# If flagged as unused, it's safe to delete
 ```
 
 ### Priority 2: Fix PNG Interlacing
@@ -255,7 +256,7 @@ pwd  # Shows current directory
 
 - **Analysis Only**: This tool only analyzes - it never automatically modifies your project
 - **Backup First**: Always backup your project before making changes
-- **Review Results**: Some "unused" images might be loaded dynamically in code
+- **Enhanced Detection**: Tool now detects dynamic loading patterns and string interpolation to reduce false positives
 - **Test Thoroughly**: Verify your app works correctly after making changes
 - **Apple Guidelines**: This tool follows Apple's official recommendations, not arbitrary limits
 
