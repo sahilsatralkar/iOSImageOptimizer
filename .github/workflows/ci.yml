@@ -38,13 +38,55 @@ jobs:
       
     - name: Generate coverage report
       run: |
-        xcrun llvm-cov export \
-          ./.build/x86_64-apple-macosx/debug/iOSImageOptimizerPackageTests.xctest/Contents/MacOS/iOSImageOptimizerPackageTests \
-          -instr-profile=./.build/x86_64-apple-macosx/debug/codecov/default.profdata \
-          -format="lcov" > coverage.lcov
+        # Determine architecture and set build path
+        ARCH=$(uname -m)
+        if [ "$ARCH" = "arm64" ]; then
+          BUILD_PATH="./.build/arm64-apple-macosx/debug"
+        else
+          BUILD_PATH="./.build/x86_64-apple-macosx/debug"
+        fi
+        
+        # Find the actual profdata file location
+        echo "Looking for profdata files..."
+        find .build -name "*.profdata" -type f || echo "No profdata files found"
+        
+        # Check if the test executable exists
+        TEST_EXECUTABLE="${BUILD_PATH}/iOSImageOptimizerPackageTests.xctest/Contents/MacOS/iOSImageOptimizerPackageTests"
+        if [ -f "$TEST_EXECUTABLE" ]; then
+          echo "Test executable found at: $TEST_EXECUTABLE"
+          
+          # Try to find profdata in common locations
+          PROFDATA_FILE=""
+          if [ -f "${BUILD_PATH}/codecov/default.profdata" ]; then
+            PROFDATA_FILE="${BUILD_PATH}/codecov/default.profdata"
+          elif [ -f "./.build/debug/codecov/default.profdata" ]; then
+            PROFDATA_FILE="./.build/debug/codecov/default.profdata"
+          else
+            # Find any profdata file
+            PROFDATA_FILE=$(find .build -name "*.profdata" -type f | head -1)
+          fi
+          
+          if [ -n "$PROFDATA_FILE" ] && [ -f "$PROFDATA_FILE" ]; then
+            echo "Using profdata file: $PROFDATA_FILE"
+            xcrun llvm-cov export \
+              "$TEST_EXECUTABLE" \
+              -instr-profile="$PROFDATA_FILE" \
+              -format="lcov" > coverage.lcov
+            echo "Coverage report generated successfully"
+          else
+            echo "Warning: No profdata file found, skipping coverage report"
+            echo "Available files in .build:"
+            find .build -type f -name "*prof*" || echo "No profile files found"
+          fi
+        else
+          echo "Warning: Test executable not found at $TEST_EXECUTABLE"
+          echo "Available xctest files:"
+          find .build -name "*.xctest" -type d || echo "No xctest bundles found"
+        fi
       working-directory: ./iOSImageOptimizer
       
     - name: Upload coverage to Codecov
+      if: hashFiles('./iOSImageOptimizer/coverage.lcov') != ''
       uses: codecov/codecov-action@v3
       with:
         file: ./iOSImageOptimizer/coverage.lcov
@@ -57,8 +99,18 @@ jobs:
         echo "## 🧪 Test Results" >> $GITHUB_STEP_SUMMARY
         echo "- ✅ Build completed successfully" >> $GITHUB_STEP_SUMMARY
         echo "- ✅ All 154 unit tests executed" >> $GITHUB_STEP_SUMMARY
-        echo "- 📊 Code coverage report generated" >> $GITHUB_STEP_SUMMARY
+        
+        # Check if coverage file was generated
+        if [ -f "coverage.lcov" ]; then
+          echo "- 📊 Code coverage report generated" >> $GITHUB_STEP_SUMMARY
+          COVERAGE_STATUS="✅ Coverage uploaded to Codecov"
+        else
+          echo "- ⚠️ Code coverage report generation skipped" >> $GITHUB_STEP_SUMMARY
+          COVERAGE_STATUS="ℹ️ Coverage data not available"
+        fi
+        
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
         echo "- Review test results in the Actions tab" >> $GITHUB_STEP_SUMMARY
-        echo "- Check coverage report on Codecov" >> $GITHUB_STEP_SUMMARY
+        echo "- $COVERAGE_STATUS" >> $GITHUB_STEP_SUMMARY
+      working-directory: ./iOSImageOptimizer
