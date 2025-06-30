@@ -16,6 +16,12 @@ This tool provides **comprehensive image analysis** for iOS projects:
 - **Compliance Scoring** - Get a 0-100 Apple compliance score
 - **Prioritized Recommendations** - Actionable items ranked by importance
 
+### 🛡️ Quality Assurance
+- **154 Comprehensive Unit Tests** - Ensuring reliability and accuracy
+- **CI/CD Pipeline** - Automated testing on every Pull Request
+- **73.8% Code Coverage** - Extensive test coverage across all components
+- **Cross-Platform Support** - Works on both Intel and Apple Silicon Macs
+
 ### 📊 Sample Output
 
 ```
@@ -200,6 +206,36 @@ pwd  # Shows current directory
 - Include in CI/CD pipeline for continuous monitoring
 - Check after adding new images or design updates
 
+## 🧪 Development & Testing
+
+### Running Tests
+```bash
+# Run all 154 unit tests
+swift test
+
+# Run tests with code coverage
+swift test --enable-code-coverage
+
+# Generate coverage report
+swift test --enable-code-coverage
+xcrun llvm-cov export ./.build/debug/iOSImageOptimizerPackageTests.xctest/Contents/MacOS/iOSImageOptimizerPackageTests -instr-profile=./.build/debug/codecov/default.profdata -format="lcov" > coverage.lcov
+```
+
+### CI/CD Integration
+The project includes GitHub Actions automation that:
+- Builds the project on every PR
+- Runs all 154 unit tests
+- Generates code coverage reports
+- Supports both x86_64 and Apple Silicon runners
+- Provides detailed test summaries
+
+### Contributing
+1. Fork the repository
+2. Create a feature branch
+3. Add tests for new functionality
+4. Ensure all tests pass: `swift test`
+5. Submit a Pull Request (CI will automatically run tests)
+
 ### Image Optimization Workflow
 1. **Design** images at @1x resolution with whole-number dimensions
 2. **Scale up** to create @2x and @3x variants
@@ -283,6 +319,21 @@ MyiOSApp/
 ```
 
 Point the tool to the root project folder containing the `.xcodeproj` file.
+
+## 📋 Version History
+
+### v0.2 (Latest)
+- ✅ **Complete Test Suite**: 154 comprehensive unit tests with 73.8% code coverage
+- ✅ **CI/CD Pipeline**: Automated testing on GitHub Actions
+- ✅ **Enhanced Detection**: Improved dynamic image loading detection with Method 2
+- ✅ **Cross-Platform**: Full support for Intel and Apple Silicon Macs
+- ✅ **Robust Error Handling**: Better handling of edge cases and malformed files
+
+### v0.1
+- ✅ Initial release with core image analysis features
+- ✅ Apple compliance validation
+- ✅ Unused image detection
+- ✅ Basic project parsing
 
 ---
 
