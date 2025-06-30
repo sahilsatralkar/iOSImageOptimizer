@@ -20,7 +20,8 @@ let package = Package(
         ),
         .testTarget(
             name: "iOSImageOptimizerTests",
-            dependencies: ["iOSImageOptimizer"]
+            dependencies: ["iOSImageOptimizer"],
+            resources: [.copy("Fixtures")]
         )
     ]
 )
