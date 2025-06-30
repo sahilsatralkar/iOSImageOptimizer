@@ -1,6 +1,14 @@
 // Mock UIKit import for pattern testing
 // import UIKit
 
+// Mock Bundle for testing
+struct Bundle {
+    static let main = Bundle()
+    func path(forResource name: String, ofType ext: String) -> String? {
+        return "/mock/path/\(name).\(ext)"
+    }
+}
+
 // Mock Objective-C style patterns in Swift for testing
 class ObjectiveCViewController {
     
@@ -72,5 +80,4 @@ struct MockUIButton {
 
 enum MockControlState {
     case normal
-}
 }

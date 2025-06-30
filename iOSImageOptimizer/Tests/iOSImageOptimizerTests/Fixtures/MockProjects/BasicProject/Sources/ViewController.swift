@@ -61,4 +61,3 @@ struct MockImage {
 struct MockUIImageView {
     var image: MockUIImage?
 }
-}

@@ -20,7 +20,13 @@ let package = Package(
         ),
         .testTarget(
             name: "iOSImageOptimizerTests",
-            dependencies: ["iOSImageOptimizer"]
+            dependencies: [
+                "iOSImageOptimizer",
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+                "Files",
+                "Rainbow"
+            ],
+            resources: [.copy("Fixtures")]
         )
     ]
 )

@@ -143,28 +143,36 @@ class ProjectParser {
         let contentsFile = imageSet.path + "/Contents.json"
         guard let file = try? File(path: contentsFile) else { return nil }
         
-        let content = try file.readAsString()
-        guard let data = content.data(using: .utf8),
-              let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let images = json["images"] as? [[String: Any]] else {
+        do {
+            let content = try file.readAsString()
+            guard let data = content.data(using: .utf8),
+                  let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let images = json["images"] as? [[String: Any]] else {
+                return nil
+            }
+        
+            let assetName = imageSet.name.replacingOccurrences(of: ".imageset", with: "")
+            var variants: [AssetVariant] = []
+            
+            for imageInfo in images {
+                let filename = imageInfo["filename"] as? String ?? ""
+                let scale = imageInfo["scale"] as? String ?? "1x"
+                let idiom = imageInfo["idiom"] as? String ?? "universal"
+                let size = imageInfo["size"] as? String
+                
+                if !filename.isEmpty {
+                    variants.append(AssetVariant(filename: filename, scale: scale, idiom: idiom, size: size))
+                }
+            }
+            
+            return AssetInfo(name: assetName, path: imageSet.path, variants: variants)
+        } catch {
+            // Handle JSON parsing errors gracefully
+            if verbose {
+                print("Warning: Failed to parse \(contentsFile): \(error)")
+            }
             return nil
         }
-        
-        let assetName = imageSet.name.replacingOccurrences(of: ".imageset", with: "")
-        var variants: [AssetVariant] = []
-        
-        for imageInfo in images {
-            let filename = imageInfo["filename"] as? String ?? ""
-            let scale = imageInfo["scale"] as? String ?? "1x"
-            let idiom = imageInfo["idiom"] as? String ?? "universal"
-            let size = imageInfo["size"] as? String
-            
-            if !filename.isEmpty {
-                variants.append(AssetVariant(filename: filename, scale: scale, idiom: idiom, size: size))
-            }
-        }
-        
-        return AssetInfo(name: assetName, path: imageSet.path, variants: variants)
     }
     
     // MARK: - Info.plist Parsing
@@ -317,7 +325,7 @@ class ProjectParser {
     
     // MARK: - Helper Methods
     
-    private func isLikelyImageReference(_ text: String) -> Bool {
+    func isLikelyImageReference(_ text: String) -> Bool {
         let lowercased = text.lowercased()
         return lowercased.contains("icon") ||
                lowercased.contains("image") ||
@@ -332,7 +340,7 @@ class ProjectParser {
                lowercased.hasSuffix(".pdf")
     }
     
-    private func isImageExtension(_ ext: String) -> Bool {
+    func isImageExtension(_ ext: String) -> Bool {
         let imageExtensions = ["png", "jpg", "jpeg", "gif", "svg", "pdf"]
         return imageExtensions.contains(ext.lowercased())
     }

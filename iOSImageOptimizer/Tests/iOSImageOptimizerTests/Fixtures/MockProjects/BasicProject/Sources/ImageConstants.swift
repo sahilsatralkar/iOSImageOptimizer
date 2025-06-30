@@ -51,8 +51,3 @@ class ImageLoader {
         let adaptiveImage = MockUIImage(named: "adaptive_image\(suffix)")
     }
 }
-
-// Mock types for compilation
-struct MockUIImage {
-    init(named: String?) {}
-}
