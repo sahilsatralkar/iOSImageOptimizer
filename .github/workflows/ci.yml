@@ -39,8 +39,8 @@ jobs:
     - name: Generate coverage report
       run: |
         xcrun llvm-cov export \
-          ./.build/arm64-apple-macosx/debug/iOSImageOptimizerPackageTests.xctest/Contents/MacOS/iOSImageOptimizerPackageTests \
-          -instr-profile=./.build/arm64-apple-macosx/debug/codecov/default.profdata \
+          ./.build/x86_64-apple-macosx/debug/iOSImageOptimizerPackageTests.xctest/Contents/MacOS/iOSImageOptimizerPackageTests \
+          -instr-profile=./.build/x86_64-apple-macosx/debug/codecov/default.profdata \
           -format="lcov" > coverage.lcov
       working-directory: ./iOSImageOptimizer
       
