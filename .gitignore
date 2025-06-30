@@ -1,0 +1,32 @@
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved
+
+# Xcode
+*.xcodeproj
+*.xcworkspace
+xcuserdata/
+DerivedData/
+.xcode.env.local
+
+# Build artifacts
+build/
+*.dSYM/
+*.profdata
+
+# IDEs
+.vscode/
+.idea/
+
+# Logs
+*.log
