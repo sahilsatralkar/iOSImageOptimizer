@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDisplayName</key>
+    <string>Test App</string>
+    <key>CFBundleExecutable</key>
+    <string>TestApp</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.test.app</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>TestApp</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    
+    <!-- Image references in Info.plist -->
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
+    <key>CFBundleIconFiles</key>
+    <array>
+        <string>Icon-Small-40</string>
+        <string>Icon-Small-40@2x</string>
+        <string>Icon-60@2x</string>
+        <string>Icon-60@3x</string>
+        <string>Icon-76</string>
+        <string>Icon-76@2x</string>
+    </array>
+    
+    <key>UILaunchImageFile</key>
+    <string>LaunchImage</string>
+    <key>UILaunchImages</key>
+    <array>
+        <dict>
+            <key>UILaunchImageName</key>
+            <string>LaunchImage-568h@2x</string>
+            <key>UILaunchImageOrientation</key>
+            <string>Portrait</string>
+            <key>UILaunchImageSize</key>
+            <string>{320, 568}</string>
+        </dict>
+        <dict>
+            <key>UILaunchImageName</key>
+            <string>LaunchImage-Portrait@2x~ipad</string>
+            <key>UILaunchImageOrientation</key>
+            <string>Portrait</string>
+            <key>UILaunchImageSize</key>
+            <string>{768, 1024}</string>
+        </dict>
+    </array>
+    
+    <!-- Custom image configurations -->
+    <key>CustomImageSettings</key>
+    <dict>
+        <key>SplashScreenImage</key>
+        <string>splash_screen</string>
+        <key>LoadingSpinnerImage</key>
+        <string>loading_spinner</string>
+        <key>ErrorPlaceholderImage</key>
+        <string>error_placeholder</string>
+    </dict>
+</dict>
+</plist>

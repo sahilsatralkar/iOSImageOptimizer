@@ -1,0 +1,24 @@
+/* Localized strings */
+
+"welcome_title" = "Welcome";
+"welcome_image" = "welcome_banner";
+"error_image" = "error_icon";
+
+/* Button images */
+"button_save_image" = "save_button";
+"button_cancel_image" = "cancel_button";
+"button_delete_image" = "delete_button";
+
+/* Navigation images */
+"nav_back_image" = "nav_back_arrow";
+"nav_menu_image" = "nav_hamburger";
+
+/* Tab bar images */
+"tab_home_image" = "tab_home_icon";
+"tab_profile_image" = "tab_profile_icon";
+"tab_settings_image" = "tab_settings_icon";
+
+/* Dynamic image references */
+"theme_light_background" = "bg_light";
+"theme_dark_background" = "bg_dark";
+"theme_auto_background" = "bg_auto";

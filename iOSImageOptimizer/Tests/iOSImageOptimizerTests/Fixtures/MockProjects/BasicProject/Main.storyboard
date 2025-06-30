@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="21701" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="21678"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <scene sceneID="tne-QT-ifu">
+            <objects>
+                <viewController id="BYZ-38-t0r" customClass="ViewController" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="storyboard_image" translatesAutoresizingMaskIntoConstraints="NO" id="abc-12-def">
+                                <rect key="frame" x="96.666666666666686" y="401" width="200" height="50"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="200" id="123-45-678"/>
+                                    <constraint firstAttribute="height" constant="50" id="234-56-789"/>
+                                </constraints>
+                            </imageView>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ghi-34-jkl">
+                                <rect key="frame" x="171.66666666666666" y="481" width="50" height="30"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="50" id="345-67-890"/>
+                                    <constraint firstAttribute="height" constant="30" id="456-78-901"/>
+                                </constraints>
+                                <state key="normal" image="button_normal"/>
+                                <state key="highlighted" image="button_highlighted"/>
+                                <state key="selected" image="button_selected"/>
+                            </button>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="abc-12-def" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="567-89-012"/>
+                            <constraint firstItem="abc-12-def" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="678-90-123"/>
+                            <constraint firstItem="ghi-34-jkl" firstAttribute="top" secondItem="abc-12-def" secondAttribute="bottom" constant="30" id="789-01-234"/>
+                            <constraint firstItem="ghi-34-jkl" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="890-12-345"/>
+                        </constraints>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="20" y="84"/>
+        </scene>
+    </scenes>
+    <resources>
+        <image name="button_highlighted" width="50" height="30"/>
+        <image name="button_normal" width="50" height="30"/>
+        <image name="button_selected" width="50" height="30"/>
+        <image name="storyboard_image" width="200" height="50"/>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+    </resources>
+</document>
