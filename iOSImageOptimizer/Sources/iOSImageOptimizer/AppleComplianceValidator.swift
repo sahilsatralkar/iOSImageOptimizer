@@ -358,3 +358,4 @@ class AppleComplianceValidator {
         return max(0, score) // Ensure score doesn't go below 0
     }
 }
+//test_CI
